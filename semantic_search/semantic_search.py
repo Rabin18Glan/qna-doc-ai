@@ -39,6 +39,7 @@ def run(query, uploaded_files=None, urls=None):
     if uploaded_files:
         for uploaded_file in uploaded_files:
             file_ext = os.path.splitext(uploaded_file.name)[1].lower()
+            uploaded_file.seek(0)  # Ensure the file can be read
             with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
                 tmp_file.write(uploaded_file.read())
                 tmp_path = tmp_file.name
@@ -47,7 +48,7 @@ def run(query, uploaded_files=None, urls=None):
                 loader = get_loader(file_path=tmp_path, file_type=file_ext)
                 all_documents.extend(loader.load())
             finally:
-                os.remove(tmp_path)
+                os.remove(tmp_path)  # This should run per file, not after the loop
 
     # Process URLs
     if urls:

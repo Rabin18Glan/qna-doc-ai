@@ -7,21 +7,30 @@ class Chain(Runnable):
         self.tagger = tagger
         self.structured_model = structured_model
         self.chat_model = chat_model
+        self.final_prompt=""
 
-    def invoke(self, input_text: str):
+    def process(self, input_text: str):
         # Step 1: Semantic search (side-effect or preloading)
+        yield "Searching in document..."
         answer = self.search(input_text)
-        yield answer
+      
         # Step 2: Tagging
+        yield "Making Tag prompts..."
         tag_prompt = self.tagger.invoke({"input": input_text})
-        yield tag_prompt
+        
         # Step 3: Structured classification
-        structured_output = self.structured_model.invoke(tag_prompt)
-        yield structured_output.model_dump()
-        # Step 4: Final prompt and chat
-        final_prompt = format_prompt(input_text,answer)
-        yield final_prompt
-        for token in self.chat_model.stream(final_prompt):
-            yield token.content
+        yield "Structured Classification..."
+        for key, value in self.structured_model.invoke(tag_prompt):
+            yield f"{key}: {value}"
 
-        yield "Chat model response complete."
+        # Step 4: Final prompt and chat
+        yield "Finalizing Prompt..."
+        self.final_prompt = format_prompt(input_text,answer)
+       
+        
+            
+    def invoke(self):
+        for token in self.chat_model.stream(self.final_prompt):
+            yield token.content
+        
+    
