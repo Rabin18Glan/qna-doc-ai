@@ -66,8 +66,15 @@ def run(query, uploaded_files=None, urls=None):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     all_splits = text_splitter.split_documents(all_documents)
 
+    if not all_splits:
+        return "No text chunks could be created from the loaded documents."
+
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    db = FAISS.from_documents(all_splits, embeddings)
+    try:
+        db = FAISS.from_documents(all_splits, embeddings)
+    except IndexError:
+        return "Failed to create FAISS index due to missing or invalid embeddings."
+
     results = db.similarity_search(query, k=3)
 
     return results[0].page_content if results else "No results found."
