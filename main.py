@@ -1,6 +1,6 @@
 import os
 import getpass
-import streamlit as st
+import streamlit as st # type: ignore
 from chat_models.chat_models import model
 from semantic_search import semantic_search
 from classification.tagging_prompt import tagging_prompt
@@ -37,7 +37,7 @@ st.markdown("<h1 style='text-align: center;'>💬 Chat with Your Files & Links</
 
 
 # Input box
-user_input = st.text_input("🔍 Ask a question:")
+user_input = st.chat_input("🔍 Ask a question:")
 
 if user_input:
     url_list = [url.strip() for url in urls_input.splitlines() if url.strip()]
@@ -59,3 +59,5 @@ if user_input:
 
     status_box.empty()
     st.write_stream(chain.invoke)
+
+
